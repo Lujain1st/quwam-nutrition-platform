@@ -1,279 +1,176 @@
-import { useState, useMemo } from "react";
-import {
-  User,
-  Activity,
-  HeartPulse,
-  ChevronDown,
-  Search,
-} from "lucide-react";
+import React, { useState } from 'react';
 
-const ACTIVITY_LEVELS = [
-  "خامل (Sedentary)",
-  "نشاط خفيف (Lightly Active)",
-  "نشاط متوسط (Moderately Active)",
-  "نشاط عالٍ (Very Active)",
-  "نشاط عالٍ جدًا (Extremely Active)",
-];
+export const InterviewScreen = ({ t, patient, setPatient, onProceed }) => {
+  const [editableData, setEditableData] = useState({ ...patient });
 
-// Placeholder patient list — will come from the API in أ4-3
-const MOCK_PATIENTS = [
-  { id: 1, name: "سارة العتيبي" },
-  { id: 2, name: "منيرة القحطاني" },
-  { id: 3, name: "خلود الحربي" },
-];
-
-function classifyBmi(bmi) {
-  if (!bmi) return null;
-  if (bmi < 18.5) return "نحافة";
-  if (bmi < 25) return "وزن طبيعي";
-  if (bmi < 30) return "وزن زائد";
-  if (bmi < 35) return "سمنة درجة أولى";
-  if (bmi < 40) return "سمنة درجة ثانية";
-  return "سمنة شديدة";
-}
-
-function Section({ icon: Icon, title, children }) {
-  return (
-    <div className="bg-white rounded-2xl border border-stone-200 p-5">
-      <div className="flex items-center gap-2 mb-4 text-[#1a4d6d]">
-        <Icon size={17} />
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, children }) {
-  return (
-    <label className="block">
-      <span className="block text-sm font-medium text-stone-700 mb-1.5">{label}</span>
-      {children}
-    </label>
-  );
-}
-
-const inputClass =
-  "w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#1a4d6d]/30 focus:border-[#1a4d6d] transition-colors";
-
-export default function InterviewScreen() {
-  const [selectedPatientId, setSelectedPatientId] = useState("");
-  const [search, setSearch] = useState("");
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  const bmi = useMemo(() => {
-    const h = parseFloat(height);
-    const w = parseFloat(weight);
-    if (!h || !w) return null;
-    return w / ((h / 100) ** 2);
-  }, [height, weight]);
-
-  const filteredPatients = MOCK_PATIENTS.filter((p) =>
-    p.name.includes(search)
-  );
+  const handleSaveAndProceed = () => {
+    setPatient({ ...editableData, confirmed: true });
+    onProceed();
+  };
 
   return (
-    <div dir="rtl" className="min-h-full w-full bg-stone-100 px-4 py-8">
-      <div className="max-w-lg mx-auto space-y-4">
-        <div className="mb-2">
-          <h1 className="text-lg font-semibold text-stone-900">شاشة اللقاء</h1>
-          <p className="text-xs text-stone-500 mt-0.5">
-            اختاري المريضة وراجعي بياناتها أثناء اللقاء
-          </p>
+    <div className="space-y-6">
+      {/* Title & Patient Select Header */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">{t.interview.title}</h2>
+          <p className="text-xs text-slate-500 mt-1">مراجعة بيانات الحالة والاعتماد قبل توليد التوصية الذكية</p>
         </div>
 
-        {/* Patient selector */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Field label="اختيار المريضة">
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="اكتبي اسم المريضة..."
-                className={inputClass + " pr-10 mb-2"}
-              />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <label className="text-xs font-bold text-slate-700 whitespace-nowrap">{t.interview.selectPatient}</label>
+          <select className="px-3 py-2 rounded-xl border border-slate-300 text-xs font-medium bg-slate-50 outline-none focus:ring-2 focus:ring-[#4ACCA6]">
+            <option>{patient.name} ({patient.id})</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left 2 Columns: Patient Measurements & Verification */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            
+            {/* Confirmed Bio Data */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-4 flex items-center justify-between">
+                <span>البيانات الشخصية المؤكدة</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">مؤكد</span>
+              </h3>
+              <div className="grid grid-cols-3 gap-4 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block mb-1">الاسم:</span>
+                  <span className="font-bold text-slate-800">{editableData.name}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block mb-1">رقم الهوية:</span>
+                  <span className="font-bold text-slate-800">{editableData.nationalId}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block mb-1">تاريخ الميلاد:</span>
+                  <span className="font-bold text-slate-800">{editableData.dob}</span>
+                </div>
+              </div>
             </div>
-            <select
-              value={selectedPatientId}
-              onChange={(e) => setSelectedPatientId(e.target.value)}
-              className={inputClass + " appearance-none"}
+
+            {/* Editable Draft Data */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-4 flex items-center justify-between">
+                <span>القياسات الفيزيائية (تعديل الأخصائي الحقيقي)</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">مراجعة حية</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">الوزن (كجم)</label>
+                  <input
+                    type="number"
+                    value={editableData.weight}
+                    onChange={(e) => setEditableData({ ...editableData, weight: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-bold text-[#4ACCA6]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">الطول (سم)</label>
+                  <input
+                    type="number"
+                    value={editableData.height}
+                    onChange={(e) => setEditableData({ ...editableData, height: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-bold text-[#4ACCA6]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">مستوى النشاط البدني</label>
+                  <input
+                    type="text"
+                    value={editableData.activity}
+                    onChange={(e) => setEditableData({ ...editableData, activity: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">الحساسيات الغذائية</label>
+                  <input
+                    type="text"
+                    value={editableData.allergy}
+                    onChange={(e) => setEditableData({ ...editableData, allergy: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SPECIFIC REQUIREMENT: Uploaded Lab Results Section */}
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#FC9F30]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>{t.interview.labSectionTitle}</span>
+              </h3>
+
+              {editableData.labFile ? (
+                <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#FC9F30]/15 text-[#FC9F30] flex items-center justify-center font-bold text-xs">
+                      PDF
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{editableData.labFile.name}</p>
+                      <p className="text-[10px] text-slate-400">{editableData.labFile.size}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => alert(`Opening ${editableData.labFile.name}`)}
+                    className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                  >
+                    {t.common.viewFile}
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 text-center rounded-xl text-xs text-slate-500">
+                  {t.interview.noLabFile}
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* Right 1 Column: Specialist Free-Text Notes & Actions */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            
+            {/* SPECIFIC REQUIREMENT: Free-text Notes Field (Optional) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-2">
+                {t.interview.notesTitle}
+              </label>
+              <textarea
+                rows="6"
+                value={editableData.specialistNotes}
+                onChange={(e) => setEditableData({ ...editableData, specialistNotes: e.target.value })}
+                placeholder={t.interview.notesPlaceholder}
+                className="w-full p-3 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-[#4ACCA6] resize-none"
+              ></textarea>
+            </div>
+
+            {/* SPECIFIC REQUIREMENT: Save & Proceed CTA */}
+            <button
+              type="button"
+              onClick={handleSaveAndProceed}
+              className="w-full py-3.5 px-4 rounded-xl bg-[#4ACCA6] hover:bg-[#3bb894] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
             >
-              <option value="" disabled>
-                — اختاري من القائمة —
-              </option>
-              {filteredPatients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="mt-3">
-            <Field label="سبب التحويل / الزيارة">
-              <input
-                type="text"
-                placeholder="مثال: إنقاص وزن، متابعة دورية..."
-                className={inputClass}
-              />
-            </Field>
+              <span>{t.interview.proceedBtn}</span>
+              <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+
           </div>
         </div>
 
-        {/* Section 1: basic data */}
-        <Section icon={User} title="بيانات أساسية">
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <Field label="العمر">
-              <input type="number" className={inputClass} />
-            </Field>
-            <Field label="الجنس">
-              <select className={inputClass + " appearance-none"} defaultValue="">
-                <option value="" disabled>
-                  اختاري
-                </option>
-                <option value="F">أنثى</option>
-                <option value="M">ذكر</option>
-              </select>
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="الطول (سم)">
-              <input
-                type="number"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="الوزن (كغ)">
-              <input
-                type="number"
-                step="0.1"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-          </div>
-          {bmi && (
-            <p className="text-xs text-stone-500 mt-3">
-              BMI المحسوب:{" "}
-              <span className="font-medium text-stone-700">
-                {bmi.toFixed(1)} ({classifyBmi(bmi)})
-              </span>
-            </p>
-          )}
-        </Section>
-
-        {/* Section 2: activity & diet history */}
-        <Section icon={Activity} title="النشاط والنمط الغذائي">
-          <div className="space-y-3">
-            <Field label="مستوى النشاط">
-              <select className={inputClass + " appearance-none"} defaultValue="">
-                <option value="" disabled>
-                  اختاري مستوى النشاط
-                </option>
-                {ACTIVITY_LEVELS.map((lvl) => (
-                  <option key={lvl} value={lvl}>
-                    {lvl}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="تاريخ الوزن (محاولات سابقة)">
-              <input type="text" className={inputClass} />
-            </Field>
-            <Field label="التاريخ الغذائي">
-              <textarea rows={3} className={inputClass + " resize-none"} />
-            </Field>
-          </div>
-        </Section>
-
-        {/* Section 3: medical status */}
-        <Section icon={HeartPulse} title="الحالة الطبية">
-          <div className="space-y-3">
-            <Field label="التشخيص الطبي / الحالات المصاحبة">
-              <input type="text" className={inputClass} />
-            </Field>
-            <Field label="الأدوية الحالية">
-              <input type="text" className={inputClass} />
-            </Field>
-            <Field label="نتائج الفحص الجسدي المرتبط بالتغذية">
-              <input
-                type="text"
-                placeholder="مثال: شحوب، تورم، فقدان كتلة عضلية..."
-                className={inputClass}
-              />
-            </Field>
-            <Field label="التاريخ الصحي العائلي">
-              <input type="text" className={inputClass} />
-            </Field>
-          </div>
-        </Section>
-
-        {/* Collapsible advanced section */}
-        <div className="bg-stone-50 rounded-2xl border border-stone-200">
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-5 py-3.5 text-sm text-stone-600"
-          >
-            <span>معلومات إضافية (لحالات خاصة)</span>
-            <ChevronDown
-              size={16}
-              className={`transition-transform ${advancedOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {advancedOpen && (
-            <div className="px-5 pb-5 space-y-3">
-              <Field label="نتائج تحاليل مخبرية">
-                <input type="text" className={inputClass} />
-              </Field>
-              <Field label="القدرة على تناول الطعام">
-                <select className={inputClass + " appearance-none"} defaultValue="">
-                  <option value="" disabled>اختاري</option>
-                  <option>مستقل</option>
-                  <option>مساعدة محدودة</option>
-                  <option>مساعدة كاملة</option>
-                </select>
-              </Field>
-              <Field label="مشاكل بالفم (مضغ / بلع)">
-                <input type="text" className={inputClass} />
-              </Field>
-              <Field label="نسبة الاستيعاب الغذائي (Intake)">
-                <select className={inputClass + " appearance-none"} defaultValue="">
-                  <option value="" disabled>اختاري</option>
-                  <option>جيدة (أكثر من 75%)</option>
-                  <option>متوسطة (حوالي 50%)</option>
-                  <option>ضعيفة (أقل من 50%)</option>
-                  <option>منخفضة جدًا (أقل من 25%)</option>
-                </select>
-              </Field>
-              <Field label="أمر الحمية / الدعم الغذائي الخاص">
-                <input
-                  type="text"
-                  placeholder="مثال: تغذية أنبوبية، دعم غذائي خاص..."
-                  className={inputClass}
-                />
-              </Field>
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          disabled={!selectedPatientId}
-          className="w-full rounded-lg bg-[#1a4d6d] py-3 text-sm font-medium text-white hover:bg-[#153f59] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          توليد الخطة
-        </button>
       </div>
     </div>
   );
-}
+};
